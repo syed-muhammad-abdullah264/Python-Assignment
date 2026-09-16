@@ -14,7 +14,6 @@ env/
 # Model artifacts
 *.keras
 *.h5
-*.pkl
 
 # OS files
 .DS_Store
