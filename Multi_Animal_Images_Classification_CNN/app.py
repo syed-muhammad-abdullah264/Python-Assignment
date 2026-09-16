@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import streamlit as st
-import joblib
 import numpy as np
 from PIL import Image
+from tensorflow.keras.models import load_model as load_keras_model
 
 
 # =========================================================
@@ -393,13 +393,13 @@ header {
 
 BASE_DIR = Path(__file__).resolve().parent
 
-MODEL_PATH = BASE_DIR / "animal_classification_model.pkl"
+MODEL_PATH = BASE_DIR / "convert_from_scratch_with_augmentation.keras"
 
 
 @st.cache_resource
 def load_model():
 
-    return joblib.load(MODEL_PATH)
+    return load_keras_model(MODEL_PATH)
 
 
 try:

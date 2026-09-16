@@ -12,7 +12,6 @@ env/
 .ipynb_checkpoints/
 
 # Model artifacts
-*.keras
 *.h5
 
 # OS files
