@@ -3,4 +3,4 @@ joblib>=1.4.2
 numpy>=1.26.0
 pillow>=10.0.0
 scikit-learn>=1.4.0
-tensorflow==2.21.0rc1
+tensorflow==2.15.1
