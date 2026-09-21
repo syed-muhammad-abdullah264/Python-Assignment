@@ -9,20 +9,21 @@ This project builds and runs an image classification app for five animal classes
 
 ## Project files
 - `app.py` — Streamlit web app
-- `animal_classification_model.pkl` — trained model file used by the app
-- `convert_from_scratch_with_augmentation.keras` — saved Keras model file
-- `animals_dataset/` — dataset folder
+- `convert_from_scratch_with_augmentation.keras` — model used by the app
 - `requirements.txt` — project dependencies
 
 ## Setup
 
-Create a virtual environment:
+Use Python 3.10, 3.11, or 3.12. TensorFlow is not compatible with
+Python 3.14. Create a fresh virtual environment:
 
-```powershell
-cd "D:\Python\Assignment\Multi_Animal_Images_Classification_CNN"
+```bash
+cd /path/to/Multi_Animal_Images_Classification_CNN
 python -m venv venv
-.\venv\Scripts\Activate.ps1
+source venv/bin/activate
 ```
+
+On Windows, activate it with `venv\Scripts\activate` instead.
 
 Install dependencies:
 
@@ -40,6 +41,6 @@ streamlit run app.py
 Then open the local URL shown by Streamlit in the browser.
 
 ## Notes
-- The app uses the trained animal model stored in `animal_classification_model.pkl`.
-- The project includes a Keras version as well for compatibility with TensorFlow-based workflows.
-- The `.gitignore` excludes virtual environments, checkpoints, logs, and generated model files from version control.
+- The app loads `convert_from_scratch_with_augmentation.keras` from the project directory.
+- The model expects RGB images and resizes them to its saved input size automatically.
+- The app validates the model shape and gives a readable Streamlit error if a dependency or model file is missing.

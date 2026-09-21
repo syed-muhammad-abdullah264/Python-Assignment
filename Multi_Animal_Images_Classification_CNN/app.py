@@ -3,7 +3,6 @@ from pathlib import Path
 import streamlit as st
 import numpy as np
 from PIL import Image
-from tensorflow.keras.models import load_model as load_keras_model
 
 
 # =========================================================
@@ -395,11 +394,47 @@ BASE_DIR = Path(__file__).resolve().parent
 
 MODEL_PATH = BASE_DIR / "convert_from_scratch_with_augmentation.keras"
 
+CLASS_NAMES = [
+    "cat",
+    "cow",
+    "deer",
+    "dog",
+    "lion"
+]
+
 
 @st.cache_resource
 def load_model():
 
-    return load_keras_model(MODEL_PATH)
+    if not MODEL_PATH.is_file():
+        raise FileNotFoundError(
+            f"Model file not found: {MODEL_PATH.name}"
+        )
+
+    try:
+        from tensorflow.keras.models import load_model as load_keras_model
+    except ImportError as error:
+        raise RuntimeError(
+            "TensorFlow install nahi hai. `pip install -r requirements.txt` "
+            "Python 3.10-3.12 environment mein run karein."
+        ) from error
+
+    model = load_keras_model(MODEL_PATH, compile=False)
+    input_shape = tuple(model.input_shape)
+    output_shape = tuple(model.output_shape)
+
+    if len(input_shape) != 4 or input_shape[-1] != 3:
+        raise ValueError(
+            f"Unsupported model input shape: {model.input_shape}"
+        )
+
+    if len(output_shape) != 2 or output_shape[-1] != len(CLASS_NAMES):
+        raise ValueError(
+            "Model output classes aur CLASS_NAMES match nahi karte: "
+            f"{model.output_shape} vs {len(CLASS_NAMES)}"
+        )
+
+    return model
 
 
 try:
@@ -408,26 +443,11 @@ try:
 
 except Exception as e:
 
-    st.error("❌ Model load nahi ho saka.")
+    st.error("Model load nahi ho saka. Pehle requirements install karein.")
 
-    st.code(str(e))
+    st.code(f"{type(e).__name__}: {e}")
 
     st.stop()
-
-
-# =========================================================
-# CLASS NAMES
-# =========================================================
-# NOTE:
-# Tumhare notebook mein exactly ye order hai.
-
-CLASS_NAMES = [
-    "cat",
-    "cow",
-    "deer",
-    "dog",
-    "lion"
-]
 
 
 EMOJIS = {
@@ -496,9 +516,10 @@ with left:
 
     if uploaded_file is not None:
 
-        image = Image.open(
-            uploaded_file
-        ).convert("RGB")
+        try:
+            image = Image.open(uploaded_file).convert("RGB")
+        except (OSError, ValueError) as error:
+            st.error(f"Image open nahi ho saki: {error}")
 
         st.image(
             image,
@@ -550,9 +571,9 @@ with right:
                     # SAME PREPROCESSING AS NOTEBOOK
                     # =====================================
 
-                    img = image.resize(
-                        (180, 180)
-                    )
+                    input_height = int(model.input_shape[1] or 180)
+                    input_width = int(model.input_shape[2] or 180)
+                    img = image.resize((input_width, input_height))
 
                     img_array = np.array(
                         img,
@@ -573,11 +594,23 @@ with right:
                     # MODEL PREDICTION
                     # =====================================
 
-                    pred = model.predict(
-                        img_array
-                    )
+                    pred = model.predict(img_array, verbose=0)
+                    scores = np.asarray(pred, dtype=np.float32).reshape(-1)
 
-                    scores = pred[0]
+                    if scores.size != len(CLASS_NAMES):
+                        raise ValueError(
+                            "Model ne unexpected number of scores return kiye: "
+                            f"{scores.size}"
+                        )
+
+                    if not np.all(np.isfinite(scores)):
+                        raise ValueError("Model output mein invalid values hain.")
+
+                    if np.any(scores < 0) or not np.isclose(
+                        float(scores.sum()), 1.0, atol=0.01
+                    ):
+                        scores = np.exp(scores - np.max(scores))
+                        scores = scores / scores.sum()
 
                     # =====================================
                     # GET INDEX
