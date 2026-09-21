@@ -305,6 +305,22 @@ st.markdown("""
     color: #334155 !important;
 }
 
+.probability-row {
+    color: #0f172a !important;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 10px 0 4px;
+}
+
+.probability-row .probability-name {
+    color: #0f172a !important;
+}
+
+.probability-row .probability-value {
+    color: #1d4ed8 !important;
+    font-weight: 800;
+}
+
 
 /* =====================================================
    INFO MESSAGE
@@ -709,9 +725,17 @@ with right:
                             score * 100
                         )
 
-                        st.write(
-                            f"**{class_name.capitalize()}** "
-                            f"— {percentage:.2f}%"
+                        st.markdown(
+                            f'<div class="probability-row">'
+                            f'<span class="probability-name">'
+                            f'{class_name.capitalize()}'
+                            f'</span>'
+                            f' <span>—</span> '
+                            f'<span class="probability-value">'
+                            f'{percentage:.2f}%'
+                            f'</span>'
+                            f'</div>',
+                            unsafe_allow_html=True
                         )
 
                         st.progress(
